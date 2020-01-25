@@ -192,6 +192,7 @@ func (h backend) status() func(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (h backend) count(w http.ResponseWriter, r *http.Request) error {
+	w.Header().Set("Cache-Control", "no-store,no-cache")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	// Don't track pages fetched with the browser's prefetch algorithm.
@@ -230,8 +231,6 @@ func (h backend) count(w http.ResponseWriter, r *http.Request) error {
 		if u != nil {
 			ref = u.Host
 		}
-
-		//hitRefs[ref] += 1
 	}
 
 	_, err := zhttp.Decode(r, &hit)
@@ -239,6 +238,7 @@ func (h backend) count(w http.ResponseWriter, r *http.Request) error {
 		w.Header().Set("Content-Type", "text/plain")
 		return err
 	}
+
 	if hit.Deprecated != "" {
 		zlog.Module("count-dep").Fields(zlog.F{
 			"site": site.Code,

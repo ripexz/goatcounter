@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/arp242/geoip2-golang v1.4.0
+	github.com/chromedp/chromedp v0.5.3
 	github.com/go-chi/chi v4.0.3+incompatible
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.3.0
