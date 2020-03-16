@@ -266,16 +266,35 @@ func (h backend) index(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		zhttp.FlashError(w, err.Error())
 	}
+
 	now := goatcounter.Now().In(site.Settings.Timezone.Loc())
-	if start.IsZero() {
-		start = now.Add(-7 * day).UTC()
-	}
-	if end.IsZero() {
-		end = now.UTC()
+	if start.IsZero() || end.IsZero() {
+		if site.Settings.View.Daily {
+			r.URL.Query().Add("daily", "true")
+		}
+
+		// TODO: highlight correct "select last" etc. as well.
+
+		switch site.Settings.View.Range {
+		case goatcounter.ViewRangeLastWeek, "": // "" for backwards compat
+			start = now.Add(-7 * day).UTC()
+			end = now.UTC()
+		case goatcounter.ViewRangeLastMonth:
+			start = now.Add(-30 * day).UTC()
+			end = now.UTC()
+
+		// TODO
+		case goatcounter.ViewRangeCurrentWeek:
+			start = now.Add(-7 * day).UTC()
+			end = now.UTC()
+		case goatcounter.ViewRangeCurrentMonth:
+			start = now.Add(-7 * day).UTC()
+			end = now.UTC()
+		}
 	}
 
-	filter := r.URL.Query().Get("filter")
 	daily, forcedDaily := getDaily(r, start, end)
+	filter := r.URL.Query().Get("filter")
 
 	l := zlog.Module("backend").Field("site", site.ID)
 
@@ -1025,5 +1044,6 @@ func getDaily(r *http.Request, start, end time.Time) (daily bool, forced bool) {
 		return true, true
 	}
 	d := strings.ToLower(r.URL.Query().Get("daily"))
+	fmt.Println("XX", d, r.URL.Query())
 	return d == "on" || d == "true", false
 }

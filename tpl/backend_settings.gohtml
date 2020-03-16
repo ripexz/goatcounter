@@ -90,6 +90,18 @@
 				<label for="limits_ref">Referrers page size</label>
 				<input type="number" min="1" max="25" name="settings.limits.ref" id="limits_ref" value="{{.Site.Settings.Limits.Ref}}">
 				{{validate "site.settings.limits.ref" .Validate}}
+
+				<label for="view_range">Range</label>
+				<select id="view_range" name="settings.view.range">
+					<option {{option_value .Site.Settings.View.Range "week"}}>Last 7 days</option>
+					<option {{option_value .Site.Settings.View.Range "month"}}>Last 30 days</option>
+					<option {{option_value .Site.Settings.View.Range "week-cur"}}>Current week</option>
+					<option {{option_value .Site.Settings.View.Range "month-cur"}}>Current month</option>
+				</select>
+				{{validate "site.settings.view.range" .Validate}}
+
+				<label>{{checkbox .Site.Settings.View.Daily "settings.view.daily"}}
+					Daily view</label>
 			</fieldset>
 
 			<fieldset>

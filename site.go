@@ -43,6 +43,15 @@ var reserved = []string{
 	"chat", "example", "yoursite", "test",
 }
 
+const (
+	ViewRangeLastWeek     = "week"
+	ViewRangeCurrentWeek  = "week-cur"
+	ViewRangeLastMonth    = "month"
+	ViewRangeCurrentMonth = "month-cur"
+)
+
+var ViewRanges = []string{ViewRangeLastWeek, ViewRangeCurrentWeek, ViewRangeLastMonth, ViewRangeCurrentMonth}
+
 // Site is a single site which is sending newsletters (i.e. it's a "customer").
 type Site struct {
 	ID     int64  `db:"id"`
@@ -75,6 +84,10 @@ type SiteSettings struct {
 		Page int `json:"page"`
 		Ref  int `json:"ref"`
 	} `json:"limits"`
+	View struct {
+		Range string `json:"range"`
+		Daily bool   `json:"daily"`
+	} `json:"view"`
 }
 
 func (ss SiteSettings) String() string { return string(jsonutil.MustMarshal(ss)) }
@@ -112,6 +125,9 @@ func (s *Site) Defaults(ctx context.Context) {
 	if s.Settings.Limits.Ref == 0 {
 		s.Settings.Limits.Ref = 10
 	}
+	if s.Settings.View.Range == "" {
+		s.Settings.View.Range = ViewRangeLastWeek
+	}
 
 	s.Code = strings.ToLower(s.Code)
 
@@ -140,6 +156,7 @@ func (s *Site) Validate(ctx context.Context) error {
 
 	v.Range("settings.limits.page", int64(s.Settings.Limits.Page), 1, 25)
 	v.Range("settings.limits.ref", int64(s.Settings.Limits.Ref), 1, 25)
+	v.Include("settings.view.range", s.Settings.View.Range, ViewRanges)
 
 	if s.Settings.DataRetention > 0 {
 		v.Range("settings.data_retention", int64(s.Settings.DataRetention), 14, 0)
