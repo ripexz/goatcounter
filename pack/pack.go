@@ -12320,9 +12320,25 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 		[period_select, drag_timeframe, load_refs, chart_hover, paginate_paths,
 			paginate_refs, hchart_detail, settings_tabs, paginate_locations,
 			billing_subscribe, setup_datepicker, filter_paths, add_ip, fill_tz,
-			paginate_toprefs,
+			paginate_toprefs, inherit_settings,
 		].forEach(function(f) { f.call(); });
 	});
+
+	// Grey out the other fields if "inherit settings" is enabled.
+	//
+	// TODO: we also want to grey out "Ignored IPs", and maybe page size as
+	// well.
+	var inherit_settings = function() {
+		// TODO: Using $('#settings.inherit') doesn't work? Not sure if "." is
+		// valid in HTML ID? Check when I have interwebz again.
+		$('#settings-form input[name="settings.inherit"][type="checkbox"]').on('change', function(e) {
+			var on = $(this).is(':checked')
+			$(this).closest('fieldset').find('>div').find('input, select, label').
+				attr('disabled', on ? true : false).
+				attr('title',    on ? 'Inherited from parent' : '').
+				css('opacity',   on ? .5 : 1)
+		}).trigger('change')
+	}
 
 	// Add current IP address to ignore_ips.
 	var add_ip = function() {
@@ -15304,7 +15320,7 @@ parent site includes the child sites.</p>
 <div>
 	<h2 id="setting">Settings</h2>
 	<div class="form-wrap">
-		<form method="post" action="/save-settings" class="vertical">
+		<form method="post" action="/save-settings" class="vertical" id="settings-form">
 			<input type="hidden" name="csrf" value="{{.User.CSRFToken}}">
 
 			<fieldset>
@@ -15394,40 +15410,47 @@ parent site includes the child sites.</p>
 			<fieldset>
 				<legend>Localisation preferences</legend>
 
-				<label for="date_format">Date format</label>
-				<select name="settings.date_format" id="date_format">
-					<option {{option_value .Site.Settings.DateFormat "2006-01-02"}}>year-month-day (2006-01-02)</option>
-					<option {{option_value .Site.Settings.DateFormat "02-01-2006"}}>day-month-year (02-01-2006)</option>
-					<option {{option_value .Site.Settings.DateFormat "01/02/06"}}>month/day/year (01/02/06)</option>
-					<option {{option_value .Site.Settings.DateFormat "2 Jan ’06"}}>Short text (2 Jan '06)</option>
-					<option {{option_value .Site.Settings.DateFormat "Mon Jan 2 2006"}}>Long text (Mon Jan 2 2006)</option>
-				</select>
+				{{if .Site.Parent}}
+					<label>{{checkbox .Site.Settings.Inherit "settings.inherit"}}
+						Inherit from parent</label>
+				{{end}}
 
-				<label>{{checkbox .Site.Settings.TwentyFourHours "settings.twenty_four_hours"}}
-					24-hour clock (13:00)</label>
+				<div>
+					<label for="date_format">Date format</label>
+					<select name="settings.date_format" id="date_format">
+						<option {{option_value .Site.Settings.DateFormat "2006-01-02"}}>year-month-day (2006-01-02)</option>
+						<option {{option_value .Site.Settings.DateFormat "02-01-2006"}}>day-month-year (02-01-2006)</option>
+						<option {{option_value .Site.Settings.DateFormat "01/02/06"}}>month/day/year (01/02/06)</option>
+						<option {{option_value .Site.Settings.DateFormat "2 Jan ’06"}}>Short text (2 Jan '06)</option>
+						<option {{option_value .Site.Settings.DateFormat "Mon Jan 2 2006"}}>Long text (Mon Jan 2 2006)</option>
+					</select>
 
-				<label>{{checkbox .Site.Settings.SundayStartsWeek "settings.sunday_starts_week"}}
-					Week starts on Sunday</label>
+					<label>{{checkbox .Site.Settings.TwentyFourHours "settings.twenty_four_hours"}}
+						24-hour clock (13:00)</label>
 
-				<label for="number_format">Thousands separator</label>
-				<select name="settings.number_format" id="number_format">
-					<option {{option_value (string .Site.Settings.NumberFormat) "8239"}}>Thin space (42 123)</option>
-					<option {{option_value (string .Site.Settings.NumberFormat) "160"}}>Space (42 123)</option>
-					<option {{option_value (string .Site.Settings.NumberFormat) "44"}}>Comma (42,123)</option>
-					<option {{option_value (string .Site.Settings.NumberFormat) "46"}}>Dot (42.123)</option>
-					<option {{option_value (string .Site.Settings.NumberFormat) "39"}}>Apostrophe (42'123)</option>
-					<option {{option_value (string .Site.Settings.NumberFormat) "1"}}>None (42123)</option>
-				</select>
-				{{validate "site.settings.number_format" .Validate}}
+					<label>{{checkbox .Site.Settings.SundayStartsWeek "settings.sunday_starts_week"}}
+						Week starts on Sunday</label>
 
-				<label for="timezone">Timezone</label>
-				<select name="settings.timezone" id="timezone">
-					<option {{option_value $.Site.Settings.Timezone.String ".UTC"}}>UTC</option>
-					{{range $tz := .Timezones}}<option {{option_value $.Site.Settings.Timezone.String $tz.String}}>{{$tz.Display}}</option>
-					{{end}}
-				</select>
-				{{validate "site.settings.timezone" .Validate}}
-				<span><a href="#_" id="set-local-tz">Set from browser</a></span>
+					<label for="number_format">Thousands separator</label>
+					<select name="settings.number_format" id="number_format">
+						<option {{option_value (string .Site.Settings.NumberFormat) "8239"}}>Thin space (42 123)</option>
+						<option {{option_value (string .Site.Settings.NumberFormat) "160"}}>Space (42 123)</option>
+						<option {{option_value (string .Site.Settings.NumberFormat) "44"}}>Comma (42,123)</option>
+						<option {{option_value (string .Site.Settings.NumberFormat) "46"}}>Dot (42.123)</option>
+						<option {{option_value (string .Site.Settings.NumberFormat) "39"}}>Apostrophe (42'123)</option>
+						<option {{option_value (string .Site.Settings.NumberFormat) "1"}}>None (42123)</option>
+					</select>
+					{{validate "site.settings.number_format" .Validate}}
+
+					<label for="timezone">Timezone</label>
+					<select name="settings.timezone" id="timezone">
+						<option {{option_value $.Site.Settings.Timezone.String ".UTC"}}>UTC</option>
+						{{range $tz := .Timezones}}<option {{option_value $.Site.Settings.Timezone.String $tz.String}}>{{$tz.Display}}</option>
+						{{end}}
+					</select>
+					{{validate "site.settings.timezone" .Validate}}
+					<span><a href="#_" id="set-local-tz">Set from browser</a></span>
+				</div>
 			</fieldset>
 
 			<div class="flex-break"></div>

@@ -5,7 +5,7 @@
 <div>
 	<h2 id="setting">Settings</h2>
 	<div class="form-wrap">
-		<form method="post" action="/save-settings" class="vertical">
+		<form method="post" action="/save-settings" class="vertical" id="settings-form">
 			<input type="hidden" name="csrf" value="{{.User.CSRFToken}}">
 
 			<fieldset>
@@ -95,40 +95,47 @@
 			<fieldset>
 				<legend>Localisation preferences</legend>
 
-				<label for="date_format">Date format</label>
-				<select name="settings.date_format" id="date_format">
-					<option {{option_value .Site.Settings.DateFormat "2006-01-02"}}>year-month-day (2006-01-02)</option>
-					<option {{option_value .Site.Settings.DateFormat "02-01-2006"}}>day-month-year (02-01-2006)</option>
-					<option {{option_value .Site.Settings.DateFormat "01/02/06"}}>month/day/year (01/02/06)</option>
-					<option {{option_value .Site.Settings.DateFormat "2 Jan ’06"}}>Short text (2 Jan '06)</option>
-					<option {{option_value .Site.Settings.DateFormat "Mon Jan 2 2006"}}>Long text (Mon Jan 2 2006)</option>
-				</select>
+				{{if .Site.Parent}}
+					<label>{{checkbox .Site.Settings.Inherit "settings.inherit"}}
+						Inherit from parent</label>
+				{{end}}
 
-				<label>{{checkbox .Site.Settings.TwentyFourHours "settings.twenty_four_hours"}}
-					24-hour clock (13:00)</label>
+				<div>
+					<label for="date_format">Date format</label>
+					<select name="settings.date_format" id="date_format">
+						<option {{option_value .Site.Settings.DateFormat "2006-01-02"}}>year-month-day (2006-01-02)</option>
+						<option {{option_value .Site.Settings.DateFormat "02-01-2006"}}>day-month-year (02-01-2006)</option>
+						<option {{option_value .Site.Settings.DateFormat "01/02/06"}}>month/day/year (01/02/06)</option>
+						<option {{option_value .Site.Settings.DateFormat "2 Jan ’06"}}>Short text (2 Jan '06)</option>
+						<option {{option_value .Site.Settings.DateFormat "Mon Jan 2 2006"}}>Long text (Mon Jan 2 2006)</option>
+					</select>
 
-				<label>{{checkbox .Site.Settings.SundayStartsWeek "settings.sunday_starts_week"}}
-					Week starts on Sunday</label>
+					<label>{{checkbox .Site.Settings.TwentyFourHours "settings.twenty_four_hours"}}
+						24-hour clock (13:00)</label>
 
-				<label for="number_format">Thousands separator</label>
-				<select name="settings.number_format" id="number_format">
-					<option {{option_value (string .Site.Settings.NumberFormat) "8239"}}>Thin space (42 123)</option>
-					<option {{option_value (string .Site.Settings.NumberFormat) "160"}}>Space (42 123)</option>
-					<option {{option_value (string .Site.Settings.NumberFormat) "44"}}>Comma (42,123)</option>
-					<option {{option_value (string .Site.Settings.NumberFormat) "46"}}>Dot (42.123)</option>
-					<option {{option_value (string .Site.Settings.NumberFormat) "39"}}>Apostrophe (42'123)</option>
-					<option {{option_value (string .Site.Settings.NumberFormat) "1"}}>None (42123)</option>
-				</select>
-				{{validate "site.settings.number_format" .Validate}}
+					<label>{{checkbox .Site.Settings.SundayStartsWeek "settings.sunday_starts_week"}}
+						Week starts on Sunday</label>
 
-				<label for="timezone">Timezone</label>
-				<select name="settings.timezone" id="timezone">
-					<option {{option_value $.Site.Settings.Timezone.String ".UTC"}}>UTC</option>
-					{{range $tz := .Timezones}}<option {{option_value $.Site.Settings.Timezone.String $tz.String}}>{{$tz.Display}}</option>
-					{{end}}
-				</select>
-				{{validate "site.settings.timezone" .Validate}}
-				<span><a href="#_" id="set-local-tz">Set from browser</a></span>
+					<label for="number_format">Thousands separator</label>
+					<select name="settings.number_format" id="number_format">
+						<option {{option_value (string .Site.Settings.NumberFormat) "8239"}}>Thin space (42 123)</option>
+						<option {{option_value (string .Site.Settings.NumberFormat) "160"}}>Space (42 123)</option>
+						<option {{option_value (string .Site.Settings.NumberFormat) "44"}}>Comma (42,123)</option>
+						<option {{option_value (string .Site.Settings.NumberFormat) "46"}}>Dot (42.123)</option>
+						<option {{option_value (string .Site.Settings.NumberFormat) "39"}}>Apostrophe (42'123)</option>
+						<option {{option_value (string .Site.Settings.NumberFormat) "1"}}>None (42123)</option>
+					</select>
+					{{validate "site.settings.number_format" .Validate}}
+
+					<label for="timezone">Timezone</label>
+					<select name="settings.timezone" id="timezone">
+						<option {{option_value $.Site.Settings.Timezone.String ".UTC"}}>UTC</option>
+						{{range $tz := .Timezones}}<option {{option_value $.Site.Settings.Timezone.String $tz.String}}>{{$tz.Display}}</option>
+						{{end}}
+					</select>
+					{{validate "site.settings.timezone" .Validate}}
+					<span><a href="#_" id="set-local-tz">Set from browser</a></span>
+				</div>
 			</fieldset>
 
 			<div class="flex-break"></div>

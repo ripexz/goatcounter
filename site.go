@@ -65,6 +65,7 @@ type Site struct {
 }
 
 type SiteSettings struct {
+	Inherit          bool               `json:"inherit"`
 	Public           bool               `json:"public"`
 	TwentyFourHours  bool               `json:"twenty_four_hours"`
 	SundayStartsWeek bool               `json:"sunday_starts_week"`
@@ -262,18 +263,67 @@ func (s *Site) Update(ctx context.Context) error {
 		return errors.New("ID == 0")
 	}
 
-	s.Defaults(ctx)
-	err := s.Validate(ctx)
+	err := s.InheritSettings(ctx)
 	if err != nil {
-		if err != nil {
-			return err
-		}
+		return fmt.Errorf("Site.Update: %w", err)
+	}
+
+	s.Defaults(ctx)
+	err = s.Validate(ctx)
+	if err != nil {
+		return err
 	}
 
 	_, err = zdb.MustGet(ctx).ExecContext(ctx,
 		`update sites set name=$1, settings=$2, cname=$3, link_domain=$4, updated_at=$5 where id=$6`,
 		s.Name, s.Settings, s.Cname, s.LinkDomain, s.UpdatedAt.Format(zdb.Date), s.ID)
 	return errors.Wrap(err, "Site.Update")
+}
+
+// InheritSettings copies all settings from the parent if InheritSettings is
+// enabled, or if this site doesn't have any parents copied all the settings to
+// children with InheritSettings enabled.
+func (s *Site) InheritSettings(ctx context.Context) error {
+	if s.Parent == nil {
+		var children Sites
+		err := children.ListSubs(ctx)
+		if err != nil {
+			return fmt.Errorf("Site.InheritSettings: %w", err)
+		}
+		for _, c := range children {
+			fmt.Println("copy to", c.Code)
+			err := c.InheritSettings(ctx)
+			if err != nil {
+				return fmt.Errorf("Site.InheritSettings: %w", err)
+			}
+		}
+		return nil
+	}
+
+	if !s.Settings.Inherit {
+		return nil
+	}
+
+	var p Site
+	err := p.ByID(ctx, *s.Parent)
+	if err != nil {
+		return fmt.Errorf("Site.InheritSettings: get parent: %w", err)
+	}
+
+	s.Settings.DateFormat = p.Settings.DateFormat
+	s.Settings.TwentyFourHours = p.Settings.TwentyFourHours
+	s.Settings.SundayStartsWeek = p.Settings.SundayStartsWeek
+	s.Settings.NumberFormat = p.Settings.NumberFormat
+	s.Settings.Timezone = p.Settings.Timezone
+	//s.Settings.IgnoreIPs = p.Settings.IgnoreIPs
+
+	_, err = zdb.MustGet(ctx).ExecContext(ctx,
+		`update sites set settings=$1, updated_at=$2 where id=$3`,
+		s.Settings, s.UpdatedAt.Format(zdb.Date), s.ID)
+	if err != nil {
+		return fmt.Errorf("Site.InheritSettings: %s", err)
+	}
+	return nil
 }
 
 // UpdateStripe sets the Stripe customer ID.

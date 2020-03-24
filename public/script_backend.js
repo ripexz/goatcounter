@@ -28,9 +28,25 @@
 		[period_select, drag_timeframe, load_refs, chart_hover, paginate_paths,
 			paginate_refs, hchart_detail, settings_tabs, paginate_locations,
 			billing_subscribe, setup_datepicker, filter_paths, add_ip, fill_tz,
-			paginate_toprefs,
+			paginate_toprefs, inherit_settings,
 		].forEach(function(f) { f.call(); });
 	});
+
+	// Grey out the other fields if "inherit settings" is enabled.
+	//
+	// TODO: we also want to grey out "Ignored IPs", and maybe page size as
+	// well.
+	var inherit_settings = function() {
+		// TODO: Using $('#settings.inherit') doesn't work? Not sure if "." is
+		// valid in HTML ID? Check when I have interwebz again.
+		$('#settings-form input[name="settings.inherit"][type="checkbox"]').on('change', function(e) {
+			var on = $(this).is(':checked')
+			$(this).closest('fieldset').find('>div').find('input, select, label').
+				attr('disabled', on ? true : false).
+				attr('title',    on ? 'Inherited from parent' : '').
+				css('opacity',   on ? .5 : 1)
+		}).trigger('change')
+	}
 
 	// Add current IP address to ignore_ips.
 	var add_ip = function() {
