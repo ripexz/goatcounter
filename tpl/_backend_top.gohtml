@@ -17,14 +17,18 @@
 		-->
 	</noscript>
 
-	<nav class="center">
+	<nav class="center nav-main">
 		{{- if .User.ID}}
+			<div class="show-mobile">
+				<a id="mobile-menu-toggle">Menu</a>
+			</div>
+
 			<div>
 				{{if eq .Path "/"}}
 					{{- if gt (len .SubSites) 1 -}}
-						Switch site:
+						<span>Switch site:</span>
 						{{- range $i, $s := .SubSites -}}
-							{{- if gt $i 0 -}}|{{- end -}}
+							{{- if gt $i 0 -}}{{- end -}}
 							{{if $.Saas}} <a{{if eq $s $.Site.Code}} class="active"{{end}} href="//{{$s}}.{{$.Domain}}{{$.Port}}">{{$s}}</a>
 							{{else}} <a{{if eq $s (deref_s $.Site.Cname)}} class="active"{{end}} href="//{{$s}}{{$.Port}}">{{$s}}</a>
 							{{- end -}}
@@ -41,12 +45,12 @@
 				{{end}}
 			</div>
 			<div>
-				Signed in as {{.User.Name}} |
-				{{if .Saas}}<a href="/updates" {{if .HasUpdates}}class="updates"{{end}}>Updates</a> |{{end}}
-				{{if and .Saas .Site.Admin}}<a {{if eq .Path "/admin"}}class="active" {{end}}href="/admin">Admin</a> |{{end}}
-				<a {{if eq .Path "/settings"}}class="active" {{end}}href="/settings">Settings</a> |
-				<a {{if eq .Path "/code"}}class="active" {{end}}href="/code">Site code</a> |
-				{{if .Billing}}<a {{if eq .Path "/billing"}}class="active" {{end}}href="/billing">Billing</a> |{{end}}
+				<span>Signed in as {{.User.Name}}</span>
+				{{if .Saas}}<a href="/updates" {{if .HasUpdates}}class="updates"{{end}}>Updates</a>{{end}}
+				{{if and .Saas .Site.Admin}}<a {{if eq .Path "/admin"}}class="active" {{end}}href="/admin">Admin</a>{{end}}
+				<a {{if eq .Path "/settings"}}class="active" {{end}}href="/settings">Settings</a>
+				<a {{if eq .Path "/code"}}class="active" {{end}}href="/code">Site code</a>
+				{{if .Billing}}<a {{if eq .Path "/billing"}}class="active" {{end}}href="/billing">Billing</a>{{end}}
 				<form method="post" action="/user/logout">
 					<input type="hidden" name="csrf" value="{{.User.CSRFToken}}">
 					<button class="link">Sign out</button>
@@ -54,7 +58,7 @@
 			</div>
 		{{else if .Site.Settings.Public}}
 			<div></div>
-			<div>Viewing as guest | <a href="/user/new">Sign in</a></div>
+			<div>Viewing as guest <a href="/user/new">Sign in</a></div>
 		{{- end -}}
 	</nav>
 

@@ -12353,9 +12353,19 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 		[period_select, drag_timeframe, load_refs, chart_hover, paginate_paths,
 			paginate_refs, hchart_detail, settings_tabs, paginate_locations,
 			billing_subscribe, setup_datepicker, filter_paths, add_ip, fill_tz,
-			paginate_toprefs,
+			paginate_toprefs, mobile_menu,
 		].forEach(function(f) { f.call(); });
 	});
+
+	var mobile_menu = function() {
+		$('#mobile-menu-toggle').on('click', function(e) {
+			e.preventDefault()
+			var nav = $(this).closest('nav')
+			// TODO: 'auto' and '2em' don't trigger transition CSS rule?
+			nav.css('height', nav.hasClass('open') ? '2em' : 'auto')
+			nav.toggleClass('open')
+		})
+	}
 
 	// Add current IP address to ignore_ips.
 	var add_ip = function() {
@@ -13301,8 +13311,29 @@ nav {
 	display: flex;
 	justify-content: space-between;
 	padding-right: .5em;
+	transition: all .4s;
 }
+/*
+@media not (prefers-reduced-motion: reduce) {
+*/
 nav .updates { font-weight: bold; background-color: yellow; }
+
+/* TODO: show "back" always */
+@media (max-width: 55rem) {
+	nav.nav-main {
+		display: block;
+		height: 2em;
+	}
+	nav.nav-main >div:first-child {
+		text-align: right;
+	}
+	nav.nav-main >div >* {
+		display: block;
+	}
+	nav.nav-main >div:not(:first-child) {
+		margin-top: 1em;
+	}
+}
 
 h2 sup, h2 small {
 	font-size: .9rem;
@@ -15109,14 +15140,18 @@ GoatCounter does its best to filter this out, but it’s impossible to do this
 		-->
 	</noscript>
 
-	<nav class="center">
+	<nav class="center nav-main">
 		{{- if .User.ID}}
+			<div class="show-mobile">
+				<a id="mobile-menu-toggle">Menu</a>
+			</div>
+
 			<div>
 				{{if eq .Path "/"}}
 					{{- if gt (len .SubSites) 1 -}}
-						Switch site:
+						<span>Switch site:</span>
 						{{- range $i, $s := .SubSites -}}
-							{{- if gt $i 0 -}}|{{- end -}}
+							{{- if gt $i 0 -}}{{- end -}}
 							{{if $.Saas}} <a{{if eq $s $.Site.Code}} class="active"{{end}} href="//{{$s}}.{{$.Domain}}{{$.Port}}">{{$s}}</a>
 							{{else}} <a{{if eq $s (deref_s $.Site.Cname)}} class="active"{{end}} href="//{{$s}}{{$.Port}}">{{$s}}</a>
 							{{- end -}}
@@ -15133,12 +15168,12 @@ GoatCounter does its best to filter this out, but it’s impossible to do this
 				{{end}}
 			</div>
 			<div>
-				Signed in as {{.User.Name}} |
-				{{if .Saas}}<a href="/updates" {{if .HasUpdates}}class="updates"{{end}}>Updates</a> |{{end}}
-				{{if and .Saas .Site.Admin}}<a {{if eq .Path "/admin"}}class="active" {{end}}href="/admin">Admin</a> |{{end}}
-				<a {{if eq .Path "/settings"}}class="active" {{end}}href="/settings">Settings</a> |
-				<a {{if eq .Path "/code"}}class="active" {{end}}href="/code">Site code</a> |
-				{{if .Billing}}<a {{if eq .Path "/billing"}}class="active" {{end}}href="/billing">Billing</a> |{{end}}
+				<span>Signed in as {{.User.Name}}</span>
+				{{if .Saas}}<a href="/updates" {{if .HasUpdates}}class="updates"{{end}}>Updates</a>{{end}}
+				{{if and .Saas .Site.Admin}}<a {{if eq .Path "/admin"}}class="active" {{end}}href="/admin">Admin</a>{{end}}
+				<a {{if eq .Path "/settings"}}class="active" {{end}}href="/settings">Settings</a>
+				<a {{if eq .Path "/code"}}class="active" {{end}}href="/code">Site code</a>
+				{{if .Billing}}<a {{if eq .Path "/billing"}}class="active" {{end}}href="/billing">Billing</a>{{end}}
 				<form method="post" action="/user/logout">
 					<input type="hidden" name="csrf" value="{{.User.CSRFToken}}">
 					<button class="link">Sign out</button>
@@ -15146,7 +15181,7 @@ GoatCounter does its best to filter this out, but it’s impossible to do this
 			</div>
 		{{else if .Site.Settings.Public}}
 			<div></div>
-			<div>Viewing as guest | <a href="/user/new">Sign in</a></div>
+			<div>Viewing as guest <a href="/user/new">Sign in</a></div>
 		{{- end -}}
 	</nav>
 

@@ -28,9 +28,19 @@
 		[period_select, drag_timeframe, load_refs, chart_hover, paginate_paths,
 			paginate_refs, hchart_detail, settings_tabs, paginate_locations,
 			billing_subscribe, setup_datepicker, filter_paths, add_ip, fill_tz,
-			paginate_toprefs,
+			paginate_toprefs, mobile_menu,
 		].forEach(function(f) { f.call(); });
 	});
+
+	var mobile_menu = function() {
+		$('#mobile-menu-toggle').on('click', function(e) {
+			e.preventDefault()
+			var nav = $(this).closest('nav')
+			// TODO: 'auto' and '2em' don't trigger transition CSS rule?
+			nav.css('height', nav.hasClass('open') ? '2em' : 'auto')
+			nav.toggleClass('open')
+		})
+	}
 
 	// Add current IP address to ignore_ips.
 	var add_ip = function() {

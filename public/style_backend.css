@@ -40,8 +40,29 @@ nav {
 	display: flex;
 	justify-content: space-between;
 	padding-right: .5em;
+	transition: all .4s;
 }
+/*
+@media not (prefers-reduced-motion: reduce) {
+*/
 nav .updates { font-weight: bold; background-color: yellow; }
+
+/* TODO: show "back" always */
+@media (max-width: 55rem) {
+	nav.nav-main {
+		display: block;
+		height: 2em;
+	}
+	nav.nav-main >div:first-child {
+		text-align: right;
+	}
+	nav.nav-main >div >* {
+		display: block;
+	}
+	nav.nav-main >div:not(:first-child) {
+		margin-top: 1em;
+	}
+}
 
 h2 sup, h2 small {
 	font-size: .9rem;
