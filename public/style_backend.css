@@ -46,6 +46,7 @@ nav {
 @media not (prefers-reduced-motion: reduce) {
 */
 nav .updates { font-weight: bold; background-color: yellow; }
+#mobile-menu-toggle { display: none; }
 
 /* TODO: show "back" always */
 @media (max-width: 55rem) {
@@ -62,7 +63,23 @@ nav .updates { font-weight: bold; background-color: yellow; }
 	nav.nav-main >div:not(:first-child) {
 		margin-top: 1em;
 	}
+
+	nav.nav-main .hide-mmenu { display: none; }
+
+	#mobile-menu-toggle {
+		display: block;
+		float: right;
+		outline: 1px solid red;
+	}
+
+	/* Always show back button */
+	nav.nav-main strong {
+		position: absolute;
+		top: .4em;
+		bottom:
+	}
 }
+
 
 h2 sup, h2 small {
 	font-size: .9rem;
