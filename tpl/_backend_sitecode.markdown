@@ -110,6 +110,15 @@ Bind a click event to every element with `data-goatcounter-click`. Called on
 page load unless `no_onload` or `no_events` is set. You may need to call this
 manually if you insert elements after the page loads.
 
+### `get_data(vars)`
+Get the data to be sent off as an object;
+
+### `urlencode(obj)`
+Convert an object to an URL encoded string, including the starting `?`:
+
+    >>> goatcounter.urlencode({path: '/test', title: '&'})
+    "?path=%2Ftest&title=%26"
+
 #### `get_query(name)`
 Get a single query parameter from the current page’s URL; returns `undefined` if
 the parameter doesn’t exist. This is useful if you want to get the `referrer`
@@ -246,6 +255,24 @@ Custom `count()` example for hooking in to an SPA nagivating by `#`:
     </script>
     {{template "code" .}}
 
+### Using navigator.sendBeacon
+
+You can use [`navigator.sendBeacon()`][beacon] with GoatCounter, for example to
+send events when someone closes a page:
+
+    <script>
+        var data = goatcounter.get_data({
+            path: function(p) { return 'unload-' + p },
+            event: true,
+        })
+        window.addEventListener('unload', function() {
+            navigator.sendBeacon(goatcounter.get_endoint() + goatcounter.urlencode(data))
+        })
+    </script>
+    {{template "code" .}}
+
+[beacon]: https://developer.mozilla.org/en-US/docs/Web/API/Navigator/sendBeacon
+
 ### Custom events
 You can send an event by setting the `event` parameter to `true` in `count()`.
 For example:
@@ -333,8 +360,10 @@ regular browsers).
 Wrap in a `<noscript>` tag to use this only for people without JavaScript.
 
 ### Tracking from backend middleware
-You can call `GET {{.Site.URL}}/count` from anywhere, such as your app’s
-middleware. It supports the following query parameters:
+You can call `GET {{.Site.URL}}/count` or `POST {{.Site.URL}}/count` from
+anywhere, such as your app’s middleware. The GET and POST sendpoints are
+identical, and supportxs the following query parameters (form parameters are
+ignored for POST):
 
 - `p` → `path`
 - `e` → `event`

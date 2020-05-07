@@ -8,7 +8,7 @@
 		window.goatcounter = window.goatcounter || {}
 
 	// Get all data we're going to send off to the counter endpoint.
-	var get_data = function(vars) {
+	goatcounter.get_data = function(vars) {
 		var data = {
 			p: (vars.path     === undefined ? goatcounter.path     : vars.path),
 			r: (vars.referrer === undefined ? goatcounter.referrer : vars.referrer),
@@ -62,12 +62,22 @@
 	}
 
 	// Object to urlencoded string, starting with a ?.
-	var to_params = function(obj) {
+	goatcounter.urlencode = function(obj) {
 		var p = []
 		for (var k in obj)
 			if (obj[k] !== '' && obj[k] !== null && obj[k] !== undefined && obj[k] !== false)
 				p.push(encodeURIComponent(k) + '=' + encodeURIComponent(obj[k]))
 		return '?' + p.join('&')
+	}
+
+	// Get the endpoint (e.g. "https://code.goatcounter.com/count") from the
+	// script tag or goatcounter.endpoint.
+	goatcounter.get_endpoint = function() {
+		var script   = document.querySelector('script[data-goatcounter]'),
+		    endpoint = (goatcounter.endpoint || window.counter)  // counter is for compat; don't use.
+		if (script)
+			endpoint = script.dataset.goatcounter
+		return endpoint
 	}
 
 	// Count a hit.
@@ -79,20 +89,20 @@
 		if (!goatcounter.allow_local && location.hostname.match(/(localhost$|^127\.|^10\.|^172\.(1[6-9]|2[0-9]|3[0-1])\.|^192\.168\.)/))
 			return
 
-		var script   = document.querySelector('script[data-goatcounter]'),
-		    endpoint = (window.goatcounter.endpoint || window.counter)  // counter is for compat; don't use.
-		if (script)
-			endpoint = script.dataset.goatcounter
-
-		var data = get_data(vars || {})
+		var endpoint = goatcounter.get_endpoint()
+		if (!endpoint) {
+			if (console && 'warn' in console)
+				console.warn('goatcounter: no endpoint found')
+			return
+		}
+		var data = goatcounter.get_data(vars || {})
 		if (data.p === null)  // null from user callback.
 			return
-
 		data.rnd = Math.random().toString(36).substr(2, 5)  // Browsers don't always listen to Cache-Control.
 
 		var img = document.createElement('img'),
 		    rm  = function() { if (img && img.parentNode) img.parentNode.removeChild(img) }
-		img.src = endpoint + to_params(data)
+		img.src = endpoint + goatcounter.urlencode(data)
 		img.style.float = 'right'  // Affect layout less.
 		img.setAttribute('alt', '')
 		img.setAttribute('aria-hidden', 'true')
