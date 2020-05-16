@@ -58,7 +58,8 @@ Flags:
                  year-month-day in UTC. The default is yesterday.
 
   -table         Which tables to reindex: hit_stats, browser_stats,
-                 location_stats, ref_stats, size_stats, or all (default).
+                 system_stats, location_stats, ref_stats, size_stats, or all
+                 (default).
 
   -site          Only reindex this site ID. Default is to reindex all.
 
@@ -84,7 +85,7 @@ func reindex() (int, error) {
 	firstDay := v.Date("-since", *since, "2006-01-02")
 	lastDay := v.Date("-to", *to, "2006-01-02")
 	v.Include("-table", *table, []string{"hit_stats", "browser_stats",
-		"location_stats", "ref_stats", "size_stats", "all"})
+		"system_stats", "location_stats", "ref_stats", "size_stats", "all"})
 	if v.HasErrors() {
 		return 1, v
 	}
@@ -213,6 +214,8 @@ func clearDay(db *sqlx.DB, table, day string, siteID int64) {
 		db.MustExecContext(ctx, `delete from hit_stats`+where)
 	case "browser_stats":
 		db.MustExecContext(ctx, `delete from browser_stats`+where)
+	case "system_stats":
+		db.MustExecContext(ctx, `delete from system_stats`+where)
 	case "location_stats":
 		db.MustExecContext(ctx, `delete from location_stats`+where)
 	case "ref_stats":
@@ -222,6 +225,7 @@ func clearDay(db *sqlx.DB, table, day string, siteID int64) {
 	case "all":
 		db.MustExecContext(ctx, `delete from hit_stats`+where)
 		db.MustExecContext(ctx, `delete from browser_stats`+where)
+		db.MustExecContext(ctx, `delete from system_stats`+where)
 		db.MustExecContext(ctx, `delete from location_stats`+where)
 		db.MustExecContext(ctx, `delete from ref_stats`+where)
 		db.MustExecContext(ctx, `delete from size_stats`+where)
