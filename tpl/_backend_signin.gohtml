@@ -2,13 +2,9 @@
 	<label for="email">Email address</label>
 	<input type="email" name="email" id="email" value="{{.Email}}" required><br>
 
-	{{if .HasPassword}}
-		<label for="password">Password</label>
-		<input type="password" name="password" id="password" required><br>
-	{{end}}
+	<label for="password">Password</label>
+	<input type="password" name="password" id="password" required><br>
 	<button>Sign in</button>
 </form>
 
-{{if .HasPassword}}
-	<p><a href="/user/forgot">Forgot password?</a></p>
-{{end}}
+<p><a href="/user/forgot">Forgot password?</a></p>

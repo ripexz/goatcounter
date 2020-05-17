@@ -8,7 +8,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"net/mail"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -17,8 +16,6 @@ import (
 	"zgo.at/guru"
 	"zgo.at/zdb"
 	"zgo.at/zhttp"
-	"zgo.at/zhttp/zmail"
-	"zgo.at/zlog"
 	"zgo.at/zvalidate"
 )
 
@@ -298,17 +295,9 @@ func (u *User) BySite(ctx context.Context, id int64) error {
 		`select * from users where site=$1`, s.IDOrParent()), "User.ByID")
 }
 
-// RequestLogin generates a new login Key.
-func (u *User) RequestLogin(ctx context.Context) error {
-	u.LoginRequest = zhttp.SecretP()
-	_, err := zdb.MustGet(ctx).ExecContext(ctx, `update users set
-		login_request=$1, login_at=current_timestamp
-		where id=$2 and site=$3`, *u.LoginRequest, u.ID, MustGetSite(ctx).IDOrParent())
-	return errors.Wrap(err, "User.RequestLogin")
-}
-
 // RequestReset generates a new password reset key.
 func (u *User) RequestReset(ctx context.Context) error {
+	// TODO: rename
 	// Recycle the request_login for now; will rename after removing email auth.
 	u.LoginRequest = zhttp.SecretP()
 	_, err := zdb.MustGet(ctx).ExecContext(ctx, `update users set
@@ -318,13 +307,6 @@ func (u *User) RequestReset(ctx context.Context) error {
 }
 
 // Login a user; create a new key, CSRF token, and reset the request date.
-//
-// How logins work:
-//
-//   1. login_request is set to a temporary token that expires in 60 mins.
-//   2. User goes to /user/login/<login_request> via email.
-//   3. If there already is a login_token, set the cookie to that. Otherwise
-//      generate a new one.
 func (u *User) Login(ctx context.Context) error {
 	u.CSRFToken = zhttp.SecretP()
 	if u.LoginToken == nil {
@@ -356,22 +338,6 @@ func (u *User) GetToken() string {
 		return ""
 	}
 	return *u.CSRFToken
-}
-
-// SendLoginMail sends the login email.
-func (u *User) SendLoginMail(ctx context.Context, site *Site) {
-	go func() {
-		defer zlog.Recover()
-
-		err := zmail.Send("Your login URL",
-			mail.Address{Name: "GoatCounter login", Address: cfg.LoginFrom},
-			[]mail.Address{{Address: u.Email}},
-			fmt.Sprintf("Hi there,\n\nYour login URL for GoatCounter is:\n\n  %s/user/login/%s\n\nGo to it to log in. This key is valid for one hour and can be used only once.\n",
-				site.URL(), *u.LoginRequest))
-		if err != nil {
-			zlog.Errorf("zmail: %s", err)
-		}
-	}()
 }
 
 // SeenUpdates marks this user as having seen all updates up until now.
